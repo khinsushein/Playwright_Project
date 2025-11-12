@@ -1,6 +1,6 @@
 <img alt="Static Badge" src="https://img.shields.io/badge/Playwright-1.56.1-blue">
 
-<img alt="tests" src="https://img.shields.io/github/actions/workflow/status/khinsushein/Playwright_project_01/playwright.yml?label=tests">
+<img alt="tests" src="https://img.shields.io/github/actions/workflow/status/khinsushein/Playwright_project/playwright.yml?label=tests">
 
 Project 1 – Automation Testing for Authentication & Shopping Flow
 This project demonstrates automated testing of the Demoblaze application using Playwright and the Page Object Model (POM).
@@ -12,6 +12,22 @@ It covers both successful and failed login scenarios, and explains how the setup
   npx playwright test --headed
 ## Run with UI
   npx playwright test --ui
+### Running the Tests
+
+#### Run all tests (headed mode):
+```
+npx playwright test --headed
+```
+
+#### Run with Playwright UI:
+```
+npx playwright test --ui
+```
+
+#### Run all tests (default/headless):
+```
+npx playwright test
+```
 ### Features Demonstrated
 
 Sign-up: Create a new user
@@ -32,12 +48,23 @@ Schema and data consistency checks
 Page Object Model: Centralized selectors in LoginPage.ts for maintainability.
 CI/CD Ready: Supports environment-based secrets, artifacts, and selective test runs.
 
+### CI/CD with GitHub Actions
+
+This project uses a [GitHub Actions workflow](.github/workflows/playwright.yml) to automatically run Playwright tests on every push and pull request to the `main` branch.
+
+- Tests run on both Chromium and Firefox browsers.
+- JUnit and HTML reports are uploaded as workflow artifacts.
+- Test results are published as PR comments and summarized in the job summary.
+
+#### Downloading Reports
+After a workflow run, you can download the latest HTML and JUnit reports from the GitHub Actions run artifacts section.
+
 ### Playwright API + UI Tests for Demoblaze
 
-<img alt="Playwright CI" src="https://github.com/khinsushein/Playwright_project_01/actions/workflows/playwright.yml/badge.svg?branch=main">
+<img alt="Playwright CI" src="https://github.com/khinsushein/Playwright_project/actions/workflows/playwright.yml/badge.svg?branch=main">
 
-### HTML Report 
-Download latest HTML report
+### HTML & JUnit Reports
+You can download the latest HTML and JUnit reports from the "Artifacts" section of each GitHub Actions run.
 
 ### Author 
 
