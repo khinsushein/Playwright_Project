@@ -1,0 +1,93 @@
+name: Playwright CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [chromium, firefox]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+      - run: npx playwright install --with-deps
+
+      - name: Run Playwright tests (${{ matrix.project }})
+        run: npx playwright test --project=${{ matrix.project }}
+
+      - name: Upload JUnit for ${{ matrix.project }}
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-${{ matrix.project }}
+          path: results/junit-${{ matrix.project }}.xml
+
+      - name: Upload HTML report (${{ matrix.project }})
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.project }}
+          path: playwright-report/
+
+  publish-report:
+    needs: e2e
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download JUnit artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: junit-*
+          path: results
+          merge-multiple: true
+
+      - name: Install glob
+        run: npm install glob
+
+      - name: Publish unit test results (PR comment)
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          files: results/**/*.xml
+
+      - name: Job Summary
+        run: |
+          node -e "
+          const fs=require('fs'), gl=require('glob');
+          const files=gl.sync('results/**/*.xml');
+          let total=0, failed=0, skipped=0;
+          for (const f of files) {
+            const xml=fs.readFileSync(f,'utf8');
+            total  += (xml.match(/<testcase /g)||[]).length;
+            failed += (xml.match(/<failure /g)||[]).length + (xml.match(/<error /g)||[]).length;
+            skipped+= (xml.match(/<skipped/g)||[]).length;
+          }
+          const passed=total-failed-skipped;
+          const md=[
+            '# Playwright Summary',
+            '',
+            '| Total | Passed | Failed | Skipped |',
+            '|------:|------:|------:|--------:|',
+            `| ${total} | ${passed} | ${failed} | ${skipped} |`
+          ].join('\\n');
+          fs.writeFileSync(process.env.GITHUB_STEP_SUMMARY, md);
+          "
